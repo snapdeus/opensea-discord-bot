@@ -30,9 +30,10 @@ const buildMessage = (sale: any) => (
     .addFields(
       { name: 'Name', value: sale.asset.name },
       { name: 'Amount', value: `${ethers.utils.formatEther(sale.total_price || '0')}${ethers.constants.EtherSymbol}` },
-      { name: 'User', value: sale?.winner_account?.user.username, },
-      { name: 'Buyer', value: sale?.winner_account?.address, },
-      { name: 'Seller', value: sale?.seller?.address, },
+      { name: 'Buyer Name', value: sale?.winner_account?.user.username, },
+      { name: 'Buyer Address', value: sale?.winner_account?.address, },
+      { name: 'Seller Name', value: sale?.seller.user.username, },
+      { name: 'Seller Address', value: sale?.seller?.address, },
     )
     .setImage(sale.asset.image_url)
     .setTimestamp(Date.parse(`${sale?.created_date}Z`))
