@@ -30,6 +30,7 @@ const buildMessage = (sale: any) => (
     .addFields(
       { name: 'Name', value: sale.asset.name },
       { name: 'Amount', value: `${ethers.utils.formatEther(sale.total_price || '0')}${ethers.constants.EtherSymbol}` },
+      { name: 'User', value: sale?.winner_account?.user.username, },
       { name: 'Buyer', value: sale?.winner_account?.address, },
       { name: 'Seller', value: sale?.seller?.address, },
     )
@@ -40,7 +41,7 @@ const buildMessage = (sale: any) => (
 
 async function main() {
   const channel = await discordSetup();
-  const seconds = process.env.SECONDS ? parseInt(process.env.SECONDS) : 90_600;
+  const seconds = process.env.SECONDS ? parseInt(process.env.SECONDS) : 3_600;
   const hoursAgo = (Math.round(new Date().getTime() / 1000) - (seconds)); // in the last hour, run hourly?
   console.log(hoursAgo.toString())
   const params = new URLSearchParams({
@@ -60,25 +61,54 @@ async function main() {
     "https://api.opensea.io/api/v1/events?" + params).then((resp) => resp.json());
   // console.log(openSeaResponse.asset_events[3].asset)
 
-  const PrimiRes = await (
-    openSeaResponse.asset_events.filter(project => project.asset.name.includes('Primi'))
+  const FakeRes = await (
+    openSeaResponse.asset_events.filter(project => project.asset.name.includes('Fake Internet Money'))
   );
 
-  const WarpRes = await (
-    openSeaResponse.asset_events.filter(project => project.asset.name.includes('Warp'))
+  const cgkRes = await (
+    openSeaResponse.asset_events.filter(project => project.asset.name.includes('CryptoGodKing'))
   );
+
+  const dreamRes = await (
+    openSeaResponse.asset_events.filter(project => project.asset.name.includes('I Saw It'))
+  );
+
+
+  const FakeSales = await Promise.all(
+    FakeRes.map(async (sale: any) => {
+      const message = buildMessage(sale);
+      const Fake_ID = '885656194209939456';
+      channel.id = Fake_ID;
+      return channel.send(message)
+    })
+  );
+
+  const cgkSales = await Promise.all(
+    cgkRes.map(async (sale: any) => {
+      const message = buildMessage(sale);
+      const cgk_ID = '885656147758055424';
+      channel.id = cgk_ID;
+      return channel.send(message)
+    })
+  );
+
+  const dreamSales = await Promise.all(
+    dreamRes.map(async (sale: any) => {
+      const message = buildMessage(sale);
+      const dream_ID = '885656175272665109';
+      channel.id = dream_ID;
+      return channel.send(message)
+    })
+  )
 
 
 
   return await Promise.all(
-    PrimiRes.map(async (sale: any) => {
-      const message = buildMessage(sale);
-      const Dream_ID = '885610595129393233';
-      channel.id = Dream_ID;
-      return channel.send(message)
-    })
-
-
+    [
+      FakeSales,
+      dreamSales,
+      cgkSales
+    ]
   );
 }
 
