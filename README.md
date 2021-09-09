@@ -1,4 +1,5 @@
 # Discord Bot for OpenSea
+# Specifically modified for NFT artist stevieP
 
 Need help? [Join us on Discord](https://discord.gg/BheNSUfcvm)!
 
