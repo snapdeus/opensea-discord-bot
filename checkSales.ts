@@ -25,14 +25,14 @@ const buildMessage = (sale: any) => (
     .setColor('#0099ff')
     .setTitle(sale.asset.name + ' sold!')
     .setURL(sale.asset.permalink)
-    .setAuthor('OpenSea Bot', 'https://files.readme.io/566c72b-opensea-logomark-full-colored.png', 'https://github.com/sbauch/opensea-discord-bot')
+    .setAuthor('salesBot', 'https://files.readme.io/566c72b-opensea-logomark-full-colored.png')
     .setThumbnail(sale.asset.collection.image_url)
     .addFields(
       { name: 'Name', value: sale.asset.name },
       { name: 'Amount', value: `${ethers.utils.formatEther(sale.total_price || '0')}${ethers.constants.EtherSymbol}` },
-      { name: 'Buyer Name', value: sale?.winner_account?.user.username, },
-      { name: 'Buyer Address', value: sale?.winner_account?.address, },
-      { name: 'Seller Name', value: sale?.seller.user.username, },
+      { name: 'Buyer', value: sale?.winner_account?.user?.username ? `${sale?.winner_account?.user?.username} (${sale?.winner_account?.address})` : sale?.winner_account?.address, },
+      // { name: 'Buyer Address', value: sale?.winner_account?.address, },
+      { name: 'Seller Name', value: sale?.seller?.user?.username || sale?.seller?.address, },
       { name: 'Seller Address', value: sale?.seller?.address, },
     )
     .setImage(sale.asset.image_url)
@@ -40,9 +40,15 @@ const buildMessage = (sale: any) => (
     .setFooter('Sold on OpenSea', 'https://files.readme.io/566c72b-opensea-logomark-full-colored.png')
 )
 
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
 async function main() {
   const channel = await discordSetup();
-  const seconds = process.env.SECONDS ? parseInt(process.env.SECONDS) : 3_600;
+  const seconds = process.env.SECONDS ? parseInt(process.env.SECONDS) : 1100_600;
   const hoursAgo = (Math.round(new Date().getTime() / 1000) - (seconds)); // in the last hour, run hourly?
   console.log(hoursAgo.toString())
   const params = new URLSearchParams({
@@ -58,10 +64,28 @@ async function main() {
     params.append('asset_contract_address', process.env.CONTRACT_ADDRESS!)
   }
 
+  const churchParams = new URLSearchParams({
+    offset: '0',
+    limit: '50',
+    event_type: 'successful',
+    only_opensea: 'false',
+    occurred_after: hoursAgo.toString(),
+    collection_slug: process.env.COLLECTION_SLUG_COSJ!,
+  })
+
+  if (process.env.CONTRACT_ADDRESS !== OPENSEA_SHARED_STOREFRONT_ADDRESS) {
+    churchParams.append('asset_contract_address', process.env.CONTRACT_ADDRESS!)
+  }
+
   const openSeaResponse = await fetch(
     "https://api.opensea.io/api/v1/events?" + params).then((resp) => resp.json());
-  // console.log(openSeaResponse.asset_events[3].asset)
 
+  const churchSeaResponse = await fetch(
+    "https://api.opensea.io/api/v1/events?" + churchParams).then((resp) => resp.json());
+
+
+
+  //FILTERING FOR STEVIEP ARTWORKS
   const FakeRes = await (
     openSeaResponse.asset_events.filter(project => project.asset.name.includes('Fake Internet Money'))
   );
@@ -74,6 +98,15 @@ async function main() {
     openSeaResponse.asset_events.filter(project => project.asset.name.includes('I Saw It'))
   );
 
+  //CREATING PROMISES AND BUILDING MESSAGES TO SEND
+  const ChurchSales = await Promise.all(
+    churchSeaResponse.asset_events.reverse().map(async (sale: any) => {
+      const message = buildMessage(sale);
+      const church_ID = '885932550453866526';
+      channel.id = church_ID;
+      return channel.send(message)
+    })
+  );
 
   const FakeSales = await Promise.all(
     FakeRes.map(async (sale: any) => {
@@ -101,40 +134,28 @@ async function main() {
       return channel.send(message)
     })
   )
-
-
+  //RETURNING MESSAGES OF SALES
 
   return await Promise.all(
     [
       FakeSales,
       dreamSales,
-      cgkSales
+      cgkSales,
+      ChurchSales
     ]
   );
 }
 
-// openSeaResponse?.asset_events?.filter(project => project.asset.name.includes('Fake Internet')).map(async (sale: any) => {
-//   const message = buildMessage(sale);
-//   const Fake_ID = '885610656831778938';
-//   channel.id = Fake_ID;
-//   return channel.send(message)
-// }),
-// openSeaResponse?.asset_events?.filter(project => project.asset.name.includes('CryptoGodKing')).map(async (sale: any) => {
-//   const message = buildMessage(sale);
-//   const CGK_ID = '885610626259497040';
-//   channel.id = CGK_ID;
-//   return channel.send(message)
-// })
 
 
 
 main()
   .then((res) => {
-
-    if (!res.length) console.log("No recent sales")
+    if (!res.length) console.log("No recent sales");
     process.exit(0)
   })
   .catch(error => {
     console.error(error);
     process.exit(1);
   });
+
