@@ -1,7 +1,12 @@
-import 'dotenv/config';
+#!/usr/bin/env ts-node-script
+
+// import 'dotenv/config';
 import Discord, { TextChannel } from 'discord.js';
 import fetch from 'node-fetch';
 import { ethers } from "ethers";
+
+const path = require('path')
+require('dotenv').config({ path: path.resolve(__dirname, './.env') })
 
 const OPENSEA_SHARED_STOREFRONT_ADDRESS = '0x495f947276749Ce646f68AC8c248420045cb7b5e';
 
