@@ -32,8 +32,8 @@ const buildMessage = (sale: any) => (
       { name: 'Amount', value: `${ethers.utils.formatEther(sale.total_price || '0')}${ethers.constants.EtherSymbol}` },
       { name: 'Buyer', value: sale?.winner_account?.user?.username ? `${sale?.winner_account?.user?.username} (${sale?.winner_account?.address})` : sale?.winner_account?.address, },
       // { name: 'Buyer Address', value: sale?.winner_account?.address, },
-      { name: 'Seller Name', value: sale?.seller?.user?.username || sale?.seller?.address, },
-      { name: 'Seller Address', value: sale?.seller?.address, },
+      { name: 'Seller', value: sale?.seller?.user?.username ? `${sale?.seller?.user?.username} (${sale?.seller?.address})` : sale?.seller?.address, },
+      // { name: 'Seller Address', value: sale?.seller?.address, },
     )
     .setImage(sale.asset.image_url)
     .setTimestamp(Date.parse(`${sale?.created_date}Z`))
@@ -79,6 +79,8 @@ async function main() {
 
   const openSeaResponse = await fetch(
     "https://api.opensea.io/api/v1/events?" + params).then((resp) => resp.json());
+
+  await sleep(2000);
 
   const churchSeaResponse = await fetch(
     "https://api.opensea.io/api/v1/events?" + churchParams).then((resp) => resp.json());
