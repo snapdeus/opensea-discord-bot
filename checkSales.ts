@@ -1,5 +1,7 @@
 #!/usr/bin/env ts-node-script
 
+
+
 // import 'dotenv/config';
 import Discord, { TextChannel } from 'discord.js';
 import fetch from 'node-fetch';
@@ -53,12 +55,12 @@ function sleep(ms) {
 
 async function main() {
   const channel = await discordSetup();
-  const seconds = process.env.SECONDS ? parseInt(process.env.SECONDS) : 1100_600;
+  const seconds = process.env.SECONDS ? parseInt(process.env.SECONDS) : 99_600;
   const hoursAgo = (Math.round(new Date().getTime() / 1000) - (seconds)); // in the last hour, run hourly?
   console.log(hoursAgo.toString())
   const params = new URLSearchParams({
     offset: '0',
-    limit: '50',
+    limit: '300',
     event_type: 'successful',
     only_opensea: 'false',
     occurred_after: hoursAgo.toString(),
@@ -71,7 +73,7 @@ async function main() {
 
   const churchParams = new URLSearchParams({
     offset: '0',
-    limit: '50',
+    limit: '100',
     event_type: 'successful',
     only_opensea: 'false',
     occurred_after: hoursAgo.toString(),
@@ -82,19 +84,59 @@ async function main() {
     churchParams.append('asset_contract_address', process.env.CONTRACT_ADDRESS!)
   }
 
-  const openSeaResponse = await fetch(
-    "https://api.opensea.io/api/v1/events?" + params).then((resp) => resp.json());
+  //error testing
+  const openSeaResponse = await fetch("https://api.opensea.io/api/v1/events?" + params).then(async response => {
+    try {
+      const data = await response.json()
+      // console.log('response data', data)
+      return data
+    } catch (error) {
+      console.log("error happened here!!")
+      console.log(error)
+    }
+  }).catch(error => console.log(error));
+  // try {
+  //   const openSeaResponse = await fetch("https://api.opensea.io/api/v1/events?" + params)
+  //   const data = await openSeaResponse.json()
+  //   // console.log('response data', data)
+  //   return data
+  // } catch (error) {
+  //   console.log("error happened here!!")
+  //   console.log(error)
+  // }
+
 
   await sleep(2000);
 
   const churchSeaResponse = await fetch(
-    "https://api.opensea.io/api/v1/events?" + churchParams).then((resp) => resp.json());
+    "https://api.opensea.io/api/v1/events?" + churchParams).then(async response => {
+      try {
+        const data = await response.json()
+        // console.log('response data', data)
+        return data
+      } catch (error) {
+        console.log("error happened here!!")
+        console.log(error)
+      }
+    }).catch(error => console.log(error));
+
+  // try {
+  //   const churchSeaResponse = await fetch(
+  //     "https://api.opensea.io/api/v1/events?" + churchParams)
+  //   const data = await churchSeaResponse.json()
+  //   // console.log('response data', data)
+  //   return data
+  // } catch (error) {
+  //   console.log("error happened here!!")
+  //   console.log(error)
+  // }
+
 
 
 
   //FILTERING FOR STEVIEP ARTWORKS
   const FakeRes = await (
-    openSeaResponse.asset_events.filter(project => project.asset.name.includes('Fake Internet Money'))
+    openSeaResponse.asset_events.filter(project => project.asset.name.includes('Fake'))
   );
 
   const cgkRes = await (
@@ -116,7 +158,7 @@ async function main() {
   );
 
   const FakeSales = await Promise.all(
-    FakeRes.map(async (sale: any) => {
+    FakeRes.reverse().map(async (sale: any) => {
       const message = buildMessage(sale);
       const Fake_ID = '885656194209939456';
       channel.id = Fake_ID;
@@ -125,7 +167,7 @@ async function main() {
   );
 
   const cgkSales = await Promise.all(
-    cgkRes.map(async (sale: any) => {
+    cgkRes.reverse().map(async (sale: any) => {
       const message = buildMessage(sale);
       const cgk_ID = '885656147758055424';
       channel.id = cgk_ID;
@@ -134,7 +176,7 @@ async function main() {
   );
 
   const dreamSales = await Promise.all(
-    dreamRes.map(async (sale: any) => {
+    dreamRes.reverse().map(async (sale: any) => {
       const message = buildMessage(sale);
       const dream_ID = '885656175272665109';
       channel.id = dream_ID;
