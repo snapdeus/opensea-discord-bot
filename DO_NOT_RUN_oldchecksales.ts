@@ -55,7 +55,7 @@ function sleep(ms) {
 
 async function main() {
   const channel = await discordSetup();
-  const seconds = process.env.SECONDS ? parseInt(process.env.SECONDS) : 99_600;
+  const seconds = process.env.SECONDS ? parseInt(process.env.SECONDS) : 999600;
   const hoursAgo = (Math.round(new Date().getTime() / 1000) - (seconds)); // in the last hour, run hourly?
   console.log(hoursAgo.toString())
   const params = new URLSearchParams({
@@ -95,15 +95,6 @@ async function main() {
       console.log(error)
     }
   }).catch(error => console.log(error));
-  // try {
-  //   const openSeaResponse = await fetch("https://api.opensea.io/api/v1/events?" + params)
-  //   const data = await openSeaResponse.json()
-  //   // console.log('response data', data)
-  //   return data
-  // } catch (error) {
-  //   console.log("error happened here!!")
-  //   console.log(error)
-  // }
 
 
   await sleep(2000);
@@ -120,17 +111,17 @@ async function main() {
       }
     }).catch(error => console.log(error));
 
-  // try {
-  //   const churchSeaResponse = await fetch(
-  //     "https://api.opensea.io/api/v1/events?" + churchParams)
-  //   const data = await churchSeaResponse.json()
-  //   // console.log('response data', data)
-  //   return data
-  // } catch (error) {
-  //   console.log("error happened here!!")
-  //   console.log(error)
-  // }
 
+  // const churchSeaResponse = async () => {
+  //   try {
+  //     const res = await fetch("https://api.opensea.io/api/v1/events?" + churchParams);
+  //     const data = await res.json();
+  //     return data;
+  //   } catch (error) {
+  //     console.log("ERROR!!")
+  //     console.log(error);
+  //   }
+  // }
 
 
 
@@ -204,7 +195,7 @@ main()
     process.exit(0)
   })
   .catch(error => {
-    console.error(error);
+    // console.error(error);
     process.exit(1);
   });
 
