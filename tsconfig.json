@@ -9,6 +9,5 @@
 
 
   },
-  "include": ["*.ts"],
-  "files": ["./hardhat.config.ts"]
+  "include": ["*.ts"]
 }

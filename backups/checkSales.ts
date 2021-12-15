@@ -57,7 +57,18 @@ async function main() {
   const seconds = process.env.SECONDS ? parseInt(process.env.SECONDS) : 3_600;
   const hoursAgo = (Math.round(new Date().getTime() / 1000) - (seconds)); // in the last hour, run hourly?
   console.log(hoursAgo.toString())
-  
+  const params = new URLSearchParams({
+    offset: '0',
+    limit: '300',
+    event_type: 'successful',
+    only_opensea: 'false',
+    occurred_after: hoursAgo.toString(),
+    collection_slug: process.env.COLLECTION_SLUG!,
+  })
+
+  if (process.env.CONTRACT_ADDRESS !== OPENSEA_SHARED_STOREFRONT_ADDRESS) {
+    params.append('asset_contract_address', process.env.CONTRACT_ADDRESS!)
+  }
 
   //PARAMS FOR CHURCH OF SUBWAY JESUS
   const churchParams = new URLSearchParams({
@@ -97,62 +108,26 @@ async function main() {
   if (process.env.CONTRACT_ADDRESS !== OPENSEA_SHARED_STOREFRONT_ADDRESS) {
     NVCParams.append('asset_contract_address', process.env.CONTRACT_ADDRESS!)
   }
-    //PARAMS FOR ISID
-    const ISIDParams = new URLSearchParams({
-      offset: '0',
-      limit: '300',
-      event_type: 'successful',
-      only_opensea: 'false',
-      occurred_after: hoursAgo.toString(),
-      collection_slug: process.env.COLLECTION_SLUG_ISID!,
-    })
-    if (process.env.CONTRACT_ADDRESS !== OPENSEA_SHARED_STOREFRONT_ADDRESS) {
-      NVCParams.append('asset_contract_address', process.env.CONTRACT_ADDRESS!)
+
+
+  const openSeaResponse = await fetch(
+    "https://api.opensea.io/api/v1/events?" + params, {
+    headers: {
+      'X-API-KEY': process.env.OPENSEA_API_KEY
     }
-      //PARAMS FOR CGK
-  const CGKParams = new URLSearchParams({
-    offset: '0',
-    limit: '300',
-    event_type: 'successful',
-    only_opensea: 'false',
-    occurred_after: hoursAgo.toString(),
-    collection_slug: process.env.COLLECTION_SLUG_CGK!,
   })
-  if (process.env.CONTRACT_ADDRESS !== OPENSEA_SHARED_STOREFRONT_ADDRESS) {
-    NVCParams.append('asset_contract_address', process.env.CONTRACT_ADDRESS!)
-  }
-    //PARAMS FOR FIM
-    const FIMParams = new URLSearchParams({
-      offset: '0',
-      limit: '300',
-      event_type: 'successful',
-      only_opensea: 'false',
-      occurred_after: hoursAgo.toString(),
-      collection_slug: process.env.COLLECTION_SLUG_FIM!,
-    })
-    if (process.env.CONTRACT_ADDRESS !== OPENSEA_SHARED_STOREFRONT_ADDRESS) {
-      NVCParams.append('asset_contract_address', process.env.CONTRACT_ADDRESS!)
-    }
+    .then(async response => {
+      try {
+        const data = await response.json()
+        // console.log('response data', data)
+        return data
+      } catch (error) {
+        console.log("error happened here!!")
+        console.log(error)
+      }
+    }).catch(error => console.log(error));
 
-
-  // const openSeaResponse = await fetch(
-  //   "https://api.opensea.io/api/v1/events?" + params, {
-  //   headers: {
-  //     'X-API-KEY': process.env.OPENSEA_API_KEY
-  //   }
-  // })
-  //   .then(async response => {
-  //     try {
-  //       const data = await response.json()
-  //       // console.log('response data', data)
-  //       return data
-  //     } catch (error) {
-  //       console.log("error happened here!!")
-  //       console.log(error)
-  //     }
-  //   }).catch(error => console.log(error));
-
-  // await sleep(1000);
+  await sleep(2000);
 
   const churchSeaResponse = await fetch(
     "https://api.opensea.io/api/v1/events?" + churchParams, {
@@ -171,7 +146,7 @@ async function main() {
       }
     }).catch(error => console.log(error));
 
-  await sleep(1000);
+  await sleep(2000);
 
   const IOUResponse = await fetch(
     "https://api.opensea.io/api/v1/events?" + IOUParams, {
@@ -190,7 +165,7 @@ async function main() {
       }
     }).catch(error => console.log(error));
 
-  await sleep(1000);
+  await sleep(2000);
 
   const NVCResponse = await fetch(
     "https://api.opensea.io/api/v1/events?" + NVCParams, {
@@ -210,96 +185,21 @@ async function main() {
     }).catch(error => console.log(error));
 
 
-    await sleep(1000);
-  
-  const FIMResponse = await fetch(
-    "https://api.opensea.io/api/v1/events?" + FIMParams, {
-    headers: {
-      'X-API-KEY': process.env.OPENSEA_API_KEY
-    }
-  })
-    .then(async response => {
-      try {
-        const data = await response.json()
-        // console.log('response data', data, data.asset_events[0].asset)
-        return data
-      } catch (error) {
-        console.log("error happened here!!")
-        console.log(error)
-      }
-    }).catch(error => console.log(error));
 
-    await sleep(1000);
+  //FILTERING FOR STEVIEP ARTWORKS
+  const FakeRes = await (
+    openSeaResponse.asset_events.filter(project => project.asset.name.includes('Fake Internet Money'))
+  );
 
+  const cgkRes = await (
+    openSeaResponse.asset_events.filter(project => project.asset.name.includes('CryptoGodKing'))
+  );
 
-  const CGKResponse = await fetch(
-    "https://api.opensea.io/api/v1/events?" + CGKParams, {
-    headers: {
-      'X-API-KEY': process.env.OPENSEA_API_KEY
-    }
-  })
-    .then(async response => {
-      try {
-        const data = await response.json()
-        // console.log('response data', data, data.asset_events[0].asset)
-        return data
-      } catch (error) {
-        console.log("error happened here!!")
-        console.log(error)
-      }
-    }).catch(error => console.log(error));
-
-    await sleep(1000);
-
-
-  const ISIDResponse = await fetch(
-    "https://api.opensea.io/api/v1/events?" + ISIDParams, {
-    headers: {
-      'X-API-KEY': process.env.OPENSEA_API_KEY
-    }
-  })
-    .then(async response => {
-      try {
-        const data = await response.json()
-        // console.log('response data', data, data.asset_events[0].asset)
-        return data
-      } catch (error) {
-        console.log("error happened here!!")
-        console.log(error)
-      }
-    }).catch(error => console.log(error));
-
+  const dreamRes = await (
+    openSeaResponse.asset_events.filter(project => project.asset.name.includes('I Saw It'))
+  );
 
   //CREATING PROMISES AND BUILDING MESSAGES TO SEND
-
-  const FIMSales = await Promise.all(
-    FIMResponse.asset_events.reverse().map(async (sale: any) => {
-      const message = buildMessage(sale);
-      const Fake_ID = process.env.FAKE_ID;
-      channel.id = Fake_ID;
-      return channel.send(message)
-    })
-  );
-
-  const CGKSales = await Promise.all(
-    CGKResponse.asset_events.reverse().map(async (sale: any) => {
-      const message = buildMessage(sale);
-      const cgk_ID = process.env.CGK_ID;
-      channel.id = cgk_ID;
-      return channel.send(message)
-    })
-  );
-
-  const ISIDSales = await Promise.all(
-    ISIDResponse.asset_events.reverse().map(async (sale: any) => {
-      const message = buildMessage(sale);
-      const dream_ID = process.env.DREAM_ID;
-      channel.id = dream_ID;
-      return channel.send(message)
-    })
-  )
-
-
   const IOUSales = await Promise.all(
     IOUResponse.asset_events.reverse().map(async (sale: any) => {
       const message = buildMessage(sale);
@@ -329,14 +229,39 @@ async function main() {
   );
 
 
- 
+  const FakeSales = await Promise.all(
+    FakeRes.reverse().map(async (sale: any) => {
+      const message = buildMessage(sale);
+      const Fake_ID = process.env.FAKE_ID;
+      channel.id = Fake_ID;
+      return channel.send(message)
+    })
+  );
+
+  const cgkSales = await Promise.all(
+    cgkRes.reverse().map(async (sale: any) => {
+      const message = buildMessage(sale);
+      const cgk_ID = process.env.CGK_ID;
+      channel.id = cgk_ID;
+      return channel.send(message)
+    })
+  );
+
+  const dreamSales = await Promise.all(
+    dreamRes.reverse().map(async (sale: any) => {
+      const message = buildMessage(sale);
+      const dream_ID = process.env.DREAM_ID;
+      channel.id = dream_ID;
+      return channel.send(message)
+    })
+  )
   //RETURNING MESSAGES OF SALES
 
   return await Promise.all(
     [
-      FIMSales,
-      ISIDSales,
-      CGKSales,
+      FakeSales,
+      dreamSales,
+      cgkSales,
       ChurchSales,
       IOUSales,
       NVCSales
